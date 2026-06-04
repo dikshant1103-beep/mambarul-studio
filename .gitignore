@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+.pnp/
+
+# Build outputs
+dist/
+build/
+*.AppImage
+
+# Databases (contain personal/session data)
+*.db
+*.sqlite
+
+# Secrets and config overrides
+.env
+.env.*
+secrets.json
+keys.json
+keys.json.migrated
+sessions.json
+rate_limits.json
+settings.json.migrated
+analytics.json.migrated
+
+# Large data files
+backend/data/backups/
+backend/data/mlruns/
+backend/data/finetune_uploads/
+backend/data/finetune_outputs/
+backend/data/pca_embedding.json
+backend/data/batteryos.db
+backend/data/customer.db
+
+# PyInstaller
+backend/build/
+backend/dist/
+*.spec
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# DVC (keep .dvc files for reference but ignore actual cache)
+.dvc/cache/
+.dvc/tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

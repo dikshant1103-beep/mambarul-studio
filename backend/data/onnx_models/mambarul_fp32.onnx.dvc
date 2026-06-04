@@ -1,0 +1,5 @@
+outs:
+- md5: 2e73b18734fa2d66903ba834bdc72942
+  size: 3519890
+  hash: md5
+  path: mambarul_fp32.onnx

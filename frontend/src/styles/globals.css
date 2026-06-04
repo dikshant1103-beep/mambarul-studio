@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #0a0e1a;
+    color: #f1f5f9;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #111827;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1e3a5f;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2563eb;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-bg-panel border border-border-subtle rounded-xl shadow-panel;
+  }
+
+  .panel-elevated {
+    @apply bg-bg-elevated border border-border-subtle rounded-xl shadow-panel;
+  }
+
+  .btn-primary {
+    @apply bg-brand-blue hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg
+           transition-all duration-200 hover:shadow-glow-sm active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-bg-elevated text-text-secondary hover:text-text-primary
+           border border-border-subtle hover:border-border-active font-medium px-4 py-2
+           rounded-lg transition-all duration-200;
+  }
+
+  .metric-value {
+    @apply font-mono text-2xl font-semibold text-text-accent;
+  }
+
+  .metric-label {
+    @apply text-xs font-medium text-text-muted uppercase tracking-wider;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-text-primary;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium;
+  }
+
+  .badge-blue {
+    @apply badge bg-blue-500/10 text-blue-400 border border-blue-500/20;
+  }
+
+  .badge-green {
+    @apply badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+  }
+
+  .badge-amber {
+    @apply badge bg-amber-500/10 text-amber-400 border border-amber-500/20;
+  }
+
+  .badge-red {
+    @apply badge bg-red-500/10 text-red-400 border border-red-500/20;
+  }
+
+  .badge-purple {
+    @apply badge bg-purple-500/10 text-purple-400 border border-purple-500/20;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@layer utilities {
+  .text-gradient-blue {
+    background: linear-gradient(135deg, #60a5fa 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-cyan {
+    background: linear-gradient(135deg, #06b6d4 0%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-glow {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 0 20px rgba(59, 130, 246, 0.1);
+  }
+
+  .animate-data-flow {
+    stroke-dasharray: 8;
+    animation: dataFlow 1.5s linear infinite;
+  }
+
+  .node-active {
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
+  }
+}
+
+/* Plotly overrides */
+.js-plotly-plot .plotly,
+.js-plotly-plot .plotly .main-svg {
+  background: transparent !important;
+}
+
+.modebar {
+  background: transparent !important;
+}
+
+.modebar-btn path {
+  fill: #64748b !important;
+}
+
+.modebar-btn:hover path {
+  fill: #94a3b8 !important;
+}
+
+/* Custom selection */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: #f1f5f9;
+}

@@ -1,0 +1,5 @@
+outs:
+- md5: 951f35cd1a5a879c2229a8be6f3fcfaf
+  size: 1288139
+  hash: md5
+  path: mambarul_int8.onnx

@@ -1,0 +1,122 @@
+{
+  "name": "mambaRUL-studio",
+  "private": true,
+  "version": "1.1.0",
+  "type": "commonjs",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:dev": "electron .",
+    "electron:build": "npm run build && electron-builder --linux AppImage",
+    "electron:build:dir": "npm run build && electron-builder --linux dir",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.1.9",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.378.0",
+    "plotly.js": "^2.29.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-plotly.js": "^2.6.0",
+    "react-router-dom": "^6.22.3"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "@types/react-plotly.js": "^2.6.3",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.19",
+    "concurrently": "^8.2.2",
+    "electron": "^29.3.0",
+    "electron-builder": "^24.13.3",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11",
+    "vitest": "^2.1.9"
+  },
+  "build": {
+    "appId": "com.mambaRUL.studio",
+    "productName": "MambaRUL Studio",
+    "copyright": "© 2026 MambaRUL",
+    "directories": {
+      "buildResources": "../assets",
+      "output": "../dist"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../assets/icons",
+        "to": "icons",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../dist/batteryos_backend",
+        "to": "batteryos_backend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../../processed",
+        "to": "processed",
+        "filter": [
+          "bimamba_v12/**",
+          "twohead_v11/**",
+          "v10_final/**",
+          "hust_finetune/**",
+          "oxford_finetune/**",
+          "nasa_finetune/**",
+          "pack_gnn/**",
+          "internal_state_head/**",
+          "lco_finetune/**"
+        ]
+      },
+      {
+        "from": "../../thesis_results",
+        "to": "thesis_results",
+        "filter": [
+          "v10_final/**",
+          "v10_full/**",
+          "v9_oxford/**",
+          "v8_multidataset_sg/**"
+        ]
+      },
+      {
+        "from": "../../tcn_mamba_rul",
+        "to": "tcn_mamba_rul",
+        "filter": [
+          "checkpoints/best_model_run4_backup.pt"
+        ]
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "../assets/icons/icon.png",
+      "category": "Science",
+      "synopsis": "Scientific Battery RUL Prediction Platform",
+      "description": "MambaRUL Studio — Multi-chemistry lithium-ion battery Remaining Useful Life prediction using Mamba SSM architecture."
+    },
+    "appImage": {
+      "artifactName": "MambaRUL-Studio.AppImage"
+    }
+  }
+}
