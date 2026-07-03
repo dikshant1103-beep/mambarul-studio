@@ -1,232 +1,105 @@
-# BatteryOS Thermal Twin
-
-> **ET AutoTech Hackathon 2026 — Theme 5: AI for Circular Economy & Sustainability**
+# MambaRUL Studio · BatteryOS
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green)
-![Electron](https://img.shields.io/badge/Electron-Desktop-lightblue)
-![Tests](https://img.shields.io/badge/Tests-151%20passing-brightgreen)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![FastAPI](https://img.shields.io/badge/FastAPI-green)
+![React](https://img.shields.io/badge/React-18-lightblue)
+![Electron](https://img.shields.io/badge/Electron-AppImage-9cf)
 
-**An AI-powered digital twin that estimates the internal core temperature of a lithium-ion battery cell in real time — using only the signals your BMS already measures.**
+**A battery-intelligence platform: scientific RUL/SoH prediction with a Mamba state-space model, a physics digital twin, pack-level GNN intelligence, and a full BMS telemetry stack — shipped as a FastAPI backend with two Electron desktop apps.**
 
-No extra hardware. No embedded sensors. Software only.
-
----
-
-## The Problem in One Line
-
-Your BMS measures voltage, current, and surface temperature.
-But internal core temperature — which is 5–15 °C hotter under fast charge — is invisible.
-That hidden hotspot causes accelerated degradation, inaccurate RUL, and thermal runaway.
-
-## Our Solution
-
-A DeepONet neural operator trained on PyBaMM physics simulations that reconstructs the full radial temperature field T(r, t) from standard BMS signals, with uncertainty bounds.
-
-```
-Inputs:  Voltage · Current · SOC · Surface Temperature
-Output:  T_core (°C) · T(r) field · Uncertainty σ
-```
+> For a one-page technical due-diligence sheet — including the honest caveats — read
+> [`ARCHITECTURE.md`](./ARCHITECTURE.md). The thermal-twin deep dive (ET AutoTech
+> Hackathon 2026 entry) lives in [`docs/THERMAL_TWIN_HACKATHON.md`](./docs/THERMAL_TWIN_HACKATHON.md).
 
 ---
 
-## Demo Video
+## What it does
 
-▶ **[Watch 5-minute demo](YOUR_YOUTUBE_LINK_HERE)**
+| Capability | How |
+|---|---|
+| **RUL / SoH prediction** | BiMamba-APF v12 (1.7M params): bidirectional Mamba SSM + chemistry embedding + physics gate, MC-dropout uncertainty, per-chemistry normalization (NMC / LFP / NCA / LCO / NMC-4680) |
+| **Uncertainty you can act on** | Conformal prediction intervals on every prediction; out-of-distribution guard falls back to a physics-based analytical estimate, transparently tagged |
+| **Internal core temperature** | DeepONet neural-operator thermal twin reconstructs the radial field T(r,t) from standard BMS signals (RMSE 1.24 °C) — no embedded sensors |
+| **Pack-level intelligence** | Pack-GNN (GraphSAGE) applies per-cell pack-context aging corrections; trainable on liionpack simulation data |
+| **Physics digital twin** | PyBaMM SPM+SEI parameter fit with holdout validation |
+| **BMS stack** | MQTT / CAN / Modbus ingestion, safety envelopes, alert history, IEC 62619 PDF reporting (simulator-fed until hardware is connected — labeled in the UI) |
+| **Warranty economics** | Claim-probability → dollar-reserve estimation per fleet |
+| **MLOps** | MLflow experiment tracking, ONNX export (FP32 + INT8), drift monitoring, online learning (EWC), model registry with safe analytical fallback |
+| **Streaming** | Kafka consumer + tumbling-window aggregation; optional Flink job in `deploy/flink/` |
 
----
+## Two desktop apps, one backend
 
-## Screenshots
+- **MambaRUL Studio** (`frontend/`) — research/admin edition: model management, experiments, fleet analytics, thermal field visualization, Phase C internal-state inference.
+- **BatteryOS** (`frontend_customer/`) — operator edition: SOH monitoring, RUL countdowns, degradation heatmaps, second-life grading, alerts.
 
-> *(Add screenshots here after recording)*
-
-| MambaRUL Studio | BatteryOS Dashboard | Thermal Twin |
-|---|---|---|
-| ![studio](docs/screenshots/studio.png) | ![batteryos](docs/screenshots/batteryos.png) | ![twin](docs/screenshots/thermal.png) |
-
----
-
-## Key Results
-
-| Metric | Value |
-|--------|-------|
-| Core Temperature RMSE | **1.24 °C** |
-| Core Temperature MAE | **0.69 °C** |
-| Uncertainty (σ) | **0.23 °C** |
-| Inference latency | **< 5 ms** per cell |
-| RUL improvement vs MIT benchmark | **−60% RMSE** |
-| Training data | **1.07M rows, 60 cells** (PyBaMM) |
-| Test suite | **151 tests passing** |
-
----
-
-## Two Deployed Applications
-
-### MambaRUL Studio — Research & Admin Edition
-- DeepONet Thermal Twin with full radial field visualization
-- BiMamba RUL prediction across NMC, LFP, NCA chemistries
-- Fleet analytics, model management (MLflow), experiment tracking
-- Phase C internal state inference
-
-### BatteryOS — Operator Edition
-- Real-time SOH monitoring and thermal alerts
-- Per-cell RUL countdown and degradation heatmaps
-- Automated second-life battery grading
-- OEM-grade API for BMS integration
-
-Both ship as self-contained Linux AppImages (Electron + embedded FastAPI).
-
----
-
-## Architecture
-
-```
-Battery Telemetry (V · I · SOC · T_surface)
-         │
-         ▼
-   FastAPI Backend  ──── SQLite (default) / PostgreSQL
-         │
-    ┌────┴────┐
-    │         │
-DeepONet   Mamba SSM
-Thermal    RUL Engine
-Twin       (BiMamba)
-    │         │
-    └────┬────┘
-         │
-   Electron + React + Plotly
-         │
-   Operator Dashboard
-```
-
-**DeepONet detail:**
-- Branch net: encodes sensor time series → latent vector [b₁…bₚ]
-- Trunk net: encodes radial position r → latent vector [t₁…tₚ]
-- Output: T̂(r, t) = Σ bᵢ · tᵢ  (dot product)
-- Physics loss: heat-equation residual regularizer (λ = 0.1)
-
----
+Both build into self-contained Linux AppImages (Electron + the FastAPI backend).
 
 ## Quickstart
 
-### Run the AppImage (Linux)
 ```bash
-chmod +x MambaRUL-Studio.AppImage
-./MambaRUL-Studio.AppImage
-
-# Login
-Email:    admin@batteryos.io
-Password: batteryos
-
-# Live API docs (auto-starts with app)
-http://localhost:8000/api/docs
-```
-
-### Run backend only (any OS with Python)
-```bash
+# Backend (Python 3.11)
 cd backend
-python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
+cd .. && bash start_backend.sh          # http://localhost:8000  (docs at /api/docs)
 
-### Run with Docker
-```bash
+# Studio frontend (dev)
+bash start_frontend.sh                  # Vite dev server + Electron
+
+# Or the full stack with Docker (Postgres/TimescaleDB, Kafka, Grafana, Prometheus)
 docker compose up
 ```
 
----
+First login uses the local demo admin (see the app's login screen); all secrets —
+JWT, admin password, SMTP — are environment-driven with obvious `CHANGE-ME`
+defaults, and the backend refuses production mode with defaults in place.
 
-## Project Structure
+## Python SDK
 
-```
-backend/
-├── core/
-│   ├── thermal_field.py        # DeepONet model definition
-│   ├── mambarul_model.py       # BiMamba RUL architecture
-│   ├── bimamba_apf.py          # Bidirectional Mamba SSM
-│   ├── physics_loss.py         # Heat-equation residual loss
-│   ├── second_life.py          # Battery grading logic
-│   └── anomaly_detector.py     # Thermal anomaly detection
-├── routers/
-│   ├── thermal_twin.py         # POST /api/thermal/predict
-│   ├── predict.py              # POST /api/predict/rul
-│   ├── fleet.py                # GET  /api/fleet/summary
-│   └── second_life.py          # GET  /api/second-life/grade
-├── data/
-│   ├── thermal/
-│   │   ├── deeponet_thermal.pt      # Trained DeepONet (221 KB)
-│   │   └── pybamm_thermal.parquet  # Training data sample (176 KB)
-│   └── onnx_models/
-│       ├── mambarul_fp32.onnx  # RUL model FP32 (3.4 MB)
-│       └── mambarul_int8.onnx  # RUL model INT8 quantized (1.3 MB)
-└── tests/                      # 151 tests (pytest)
+Zero-dependency client in [`sdk/`](./sdk) ([README](./sdk/README.md)):
 
-frontend/
-├── src/                        # React components
-└── electron/                   # Electron main process
-
-frontend_customer/              # BatteryOS operator UI
+```python
+from batteryos_sdk import BatteryOSClient
+client = BatteryOSClient(base_url="http://localhost:8000", api_key="bos_...")
+r = client.predict(cap_pct=0.85, chemistry="NMC", temperature=25.0)
+print(r["rul_cycles"], r["ci_low"], r["ci_high"])
 ```
 
----
+## Deployment
 
-## Training Pipeline
+- `docker-compose.yml` — dev stack; `docker-compose.prod.yml` + `nginx.prod.conf` / `nginx_https.conf` — hardened prod compose.
+- [`deploy/helm/batteryos`](./deploy/helm/batteryos) — Kubernetes Helm chart (secrets injected out-of-band via `kubectl create secret`, never in values).
+- `deploy/flink/` — streaming aggregation job.
+- `grafana/` + `prometheus.yml` — dashboards and scrape config.
+
+## Project structure
 
 ```
-PyBaMM DFN electrochemical-thermal simulation
-    ↓
-1.07M rows · 60 cells · NMC + NMC-4680 · 36 features
-    ↓
-DeepONet training (Adam, cosine LR, 200 epochs, physics loss)
-    ↓
-Validation: RMSE 1.24°C on held-out cells
-    ↓
-Export: deeponet_thermal.pt + ONNX
+backend/            FastAPI app — core/ (models, physics, streaming, MLOps), routers/, tests/
+frontend/           MambaRUL Studio (React + Vite + TS + Electron)
+frontend_customer/  BatteryOS operator app
+sdk/                Python SDK (zero-dependency)
+deploy/             Helm chart + Flink job
+grafana/            Dashboards; prometheus.yml scrape config
+scripts/            Training / data-prep utilities
+ARCHITECTURE.md     One-page technical evaluator sheet (honest caveats included)
+docs/               Thermal-twin hackathon deep dive
 ```
 
----
+Small trained artifacts ship in-repo so the app runs out of the box:
+`backend/data/thermal/deeponet_thermal.pt` (221 KB), `backend/data/onnx_models/`
+(3.4 MB FP32 / 1.3 MB INT8). Large checkpoints, databases, and training data are
+excluded by `.gitignore`.
 
-## Circular Economy Impact
+## Test posture
 
-- **30–45%** longer battery lifetime with thermal-aware management
-- **2× more** batteries correctly routed to second life vs. scrapped
-- **60%** reduction in premature battery replacements
-- Accurate SOH grading without cell disassembly
+~89 backend tests (inference, endpoints, concurrency/load, warranty, streaming, LIMS)
+plus frontend unit tests (vitest); Playwright e2e scaffolded in `frontend/e2e/`.
 
----
+## Honest scope
 
-## Honest Scope
-
-| ✅ Real & working | ⚠️ Simulated / not yet validated |
-|---|---|
-| Deployed Electron apps | Internal temperature labels from PyBaMM (not physical thermocouples) |
-| Trained DeepONet (live inference) | Not yet tested against embedded hardware sensors |
-| FastAPI backend (50+ endpoints) | Cell-level only, not pack-level |
-| 151 passing tests | |
-| ONNX export (edge-ready) | |
-
-Next milestone: validate against embedded thermocouples at r = 0, R/2, R.
-
----
-
-## Hardware Used
-
-- GPU: NVIDIA GTX 1650 Ti (4 GB VRAM)
-- OS: Ubuntu Linux
-- Training: CPU fallback for large batches
-
----
-
-## Team
-
-**Team Name:** _______________
-
-| Name | Role |
-|------|------|
-| | |
-| | |
-| | |
+This is a working research platform, not a certified BMS product. The edges are
+documented plainly in [`ARCHITECTURE.md`](./ARCHITECTURE.md) — single-snapshot
+history synthesis (tagged `history_source`), simulator-fed BMS demos, SQLite
+default persistence, and the OOD analytical guard.
