@@ -1,0 +1,32 @@
+BatteryOS deployed.
+
+  Release name:  {{ .Release.Name }}
+  Namespace:     {{ .Release.Namespace }}
+  Replicas:      {{ if .Values.autoscaling.enabled }}{{ .Values.autoscaling.minReplicas }}–{{ .Values.autoscaling.maxReplicas }} (HPA){{ else }}{{ .Values.replicaCount }}{{ end }}
+
+To reach the API:
+{{- if .Values.ingress.enabled }}
+  https://{{ (index .Values.ingress.hosts 0).host }}/api/health
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  Watch the external IP:
+    kubectl --namespace {{ .Release.Namespace }} get svc -w {{ include "batteryos.fullname" . }}
+{{- else }}
+  Port-forward locally:
+    kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "batteryos.fullname" . }} 8000:{{ .Values.service.port }}
+    curl http://localhost:8000/api/health
+{{- end }}
+
+Required secret (create out-of-band before install):
+
+  kubectl --namespace {{ .Release.Namespace }} create secret generic {{ .Values.secretsRef.name }} \
+      --from-literal=DATABASE_URL='postgresql://...' \
+      --from-literal=JWT_SECRET='<random-256-bit-hex>' \
+      --from-literal=WEBHOOK_URL='https://hooks.slack.com/...' \
+      --from-literal=SMTP_PASSWORD='<smtp-password>'
+
+Postgres / TimescaleDB:
+{{- if .Values.postgresql.enabled }}
+  In-cluster TimescaleDB pod is enabled. DATABASE_URL secret should point at the bundled service.
+{{- else }}
+  Bring your own managed Postgres + TimescaleDB. Set DATABASE_URL in the secret.
+{{- end }}

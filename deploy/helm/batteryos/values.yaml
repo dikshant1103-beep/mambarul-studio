@@ -1,0 +1,122 @@
+# Default values for BatteryOS Helm chart.
+
+replicaCount: 2
+
+image:
+  repository: batteryos/api
+  tag: "2026.05.29"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: api.batteryos.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: batteryos-tls
+      hosts:
+        - api.batteryos.example.com
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 2
+    memory: 4Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+env:
+  # Public, non-secret env vars are inlined here.
+  LOG_LEVEL: "INFO"
+  CORS_ORIGINS: "https://app.batteryos.example.com"
+  RATE_LIMIT_PREDICT: "30/minute"
+
+# Secrets are pulled from an external Kubernetes Secret (created out-of-band
+# via `kubectl create secret generic batteryos-secrets ...`).
+secretsRef:
+  name: batteryos-secrets
+  keys:
+    - DATABASE_URL
+    - JWT_SECRET
+    - WEBHOOK_URL
+    - SMTP_PASSWORD
+
+probes:
+  liveness:
+    path: /api/health
+    initialDelaySeconds: 30
+    periodSeconds: 30
+  readiness:
+    path: /api/health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+# Bundled subchart toggles. Set to false in production where managed
+# Postgres / managed Kafka are used.
+postgresql:
+  enabled: true
+  image:
+    repository: timescale/timescaledb
+    tag: latest-pg16
+  auth:
+    username: batteryos
+    password: change-me-via-secret
+    database: batteryos
+  persistence:
+    enabled: true
+    size: 50Gi
+
+kafka:
+  enabled: false
+  brokers: "kafka-broker:9092"
+
+persistence:
+  models:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    mountPath: /app/processed

@@ -60,3 +60,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# PyInstaller working dir + training-run artifacts
+build_pyinstaller/
+processed/

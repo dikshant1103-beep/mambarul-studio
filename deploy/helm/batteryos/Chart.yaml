@@ -1,0 +1,19 @@
+apiVersion: v2
+name: batteryos
+description: BatteryOS — FastAPI inference backend + PostgreSQL/TimescaleDB + optional Kafka. Multi-chemistry RUL/SOH, BMS telemetry, digital twin, pack-GNN, warranty intelligence.
+type: application
+version: 0.1.0
+appVersion: "2026.05.29"
+keywords:
+  - battery
+  - rul
+  - soh
+  - bms
+  - timeseries
+  - mlops
+maintainers:
+  - name: dikshant1103-beep
+    email: 261631710+dikshant1103-beep@users.noreply.github.com
+home: https://github.com/dikshant1103-beep/mambarul-studio
+sources:
+  - https://github.com/dikshant1103-beep/mambarul-studio

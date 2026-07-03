@@ -1,0 +1,71 @@
+version: '3.9'
+
+# Production compose — HTTPS via Let's Encrypt + Certbot
+# Usage:
+#   1. Copy backend/.env.example → backend/.env and fill in values
+#   2. Set YOUR_DOMAIN_HERE in nginx.prod.conf
+#   3. docker compose -f docker-compose.prod.yml up -d
+#   4. docker compose -f docker-compose.prod.yml run --rm certbot certonly \
+#        --webroot --webroot-path /var/www/certbot \
+#        -d your-domain.io --email you@example.com --agree-tos --no-eff-email
+#   5. Reload nginx: docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
+
+services:
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    expose:
+      - "8000"
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/models:/app/models:ro
+    env_file:
+      - ./backend/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:1.25-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - backend
+      - frontend
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Run manually; not a long-lived service
+    profiles: ["certbot"]
+
+  # Certbot auto-renewal (runs once a day)
+  certbot-renew:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot --webroot-path /var/www/certbot; sleep 12h & wait $${!}; done"
+    restart: unless-stopped

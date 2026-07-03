@@ -1,0 +1,41 @@
+# requirements-packsim.txt — ISOLATED, OPTIONAL environment for liionpack
+# pack-level simulation (e.g. generating Pack-GNN training data).
+#
+# ⚠ DO NOT install these into the main backend environment.
+#    The main backend runs pybamm 25.x (used by the PyBaMM digital twin).
+#    liionpack 0.3.7 uses the pre-24.1 pybamm Experiment API
+#    (`Experiment.operating_conditions_steps`), which was removed in pybamm 24.1.
+#    It therefore needs an OLD pybamm (<24.1), which in turn only supports
+#    Python <3.12. Mixing it into the main env would break the digital twin.
+#    Keep it in its own venv so nothing in the main stack changes.
+#
+# Python: 3.10 or 3.11 ONLY (NOT 3.12/3.13 — pybamm 23.9 requires >=3.8,<3.12).
+#
+# Setup (venv):
+#   python3.10 -m venv .venv-packsim
+#   source .venv-packsim/bin/activate
+#   pip install -r requirements-packsim.txt
+#
+# Setup (conda — recommended, gives a clean 3.11 interpreter):
+#   conda create -n packsim python=3.11 -y
+#   conda activate packsim
+#   pip install -r requirements-packsim.txt
+#
+# Verify the env works:
+#   python -c "import liionpack, pybamm; print('pybamm', pybamm.__version__)"
+#   # then a minimal pack solve (must NOT raise AttributeError on operating_conditions_steps):
+#   python -c "import liionpack as lp, pybamm; \
+#     nl=lp.setup_circuit(Np=2,Ns=2); \
+#     exp=pybamm.Experiment(['Discharge at 1.2 A for 100 s'], period='20 s'); \
+#     print('experiment steps OK:', hasattr(exp,'operating_conditions_steps'))"
+#
+# Compatibility matrix (verified from package metadata, 2026-05-27):
+#   liionpack 0.3.7  ->  pybamm >=23.5,<24.1   (Experiment.operating_conditions_steps)
+#   pybamm 23.9      ->  Python >=3.8,<3.12,  numpy <2
+#   (sandbox note: the live solve was NOT run here — system Python is 3.13 and
+#    has no installable <3.12 interpreter with pip; run the verify step above in
+#    a real 3.10/3.11 env.)
+
+liionpack==0.3.7
+pybamm==23.9
+numpy<2

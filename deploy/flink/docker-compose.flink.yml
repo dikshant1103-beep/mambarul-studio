@@ -1,0 +1,60 @@
+version: "3.8"
+
+# BatteryOS — Flink streaming cluster
+# Runs alongside the existing docker-compose.yml (Kafka + TimescaleDB).
+#
+# Start:
+#   docker compose -f docker-compose.yml -f deploy/flink/docker-compose.flink.yml up -d
+#
+# Submit the aggregation job:
+#   docker exec batteryos-flink-jobmanager \
+#     flink run -py /opt/batteryos/scripts/flink_streaming_job.py \
+#       -D rest.address=jobmanager \
+#       -D kafka.bootstrap.servers=kafka:9092
+
+services:
+  flink-jobmanager:
+    image: flink:1.18-python3
+    container_name: batteryos-flink-jobmanager
+    command: jobmanager
+    ports:
+      - "8081:8081"     # Flink Web UI
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+        state.backend: filesystem
+        state.checkpoints.dir: file:///tmp/flink-checkpoints
+    volumes:
+      - ../../scripts:/opt/batteryos/scripts:ro
+      - ../../backend/core:/opt/batteryos/core:ro
+    networks:
+      - batteryos-net
+    depends_on:
+      - kafka
+
+  flink-taskmanager:
+    image: flink:1.18-python3
+    container_name: batteryos-flink-taskmanager
+    command: taskmanager
+    scale: 2          # 2 task managers = 8 slots total
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 4
+    volumes:
+      - ../../scripts:/opt/batteryos/scripts:ro
+      - ../../backend/core:/opt/batteryos/core:ro
+    networks:
+      - batteryos-net
+    depends_on:
+      - flink-jobmanager
+
+networks:
+  batteryos-net:
+    external: true
+    name: batteryos_default
