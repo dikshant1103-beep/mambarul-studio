@@ -8,6 +8,7 @@ venv/
 
 # Node
 node_modules/
+node_modules
 .pnp/
 
 # Build outputs
